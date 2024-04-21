@@ -1,0 +1,13 @@
+{
+  "name": "musicmode",
+  "version": "1.0.0",
+  "description": "Your Music Companion",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "spotify-web-api-node": "^5.0.2"
+  }
+}
