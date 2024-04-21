@@ -151,7 +151,7 @@ function getRandomItems(arr, count) {
     return shuffled.slice(min);
 }
 
-function showSongDetail(song) {
+async function showSongDetail(song) {
     const songDetailContainer = document.getElementById('songDetailContainer');
     const songDetailNameElement = document.getElementById('songDetailName');
     const songDetailArtistElement = document.getElementById('songDetailArtist');
@@ -183,6 +183,33 @@ function showSongDetail(song) {
     history.pushState({songId: song.track.id}, '', `/song/${song.track.id}`);
 
     smoothScrollToTop();
+
+    // Create a new element to display the song information
+    const songInfoElement = document.createElement('div');
+    songInfoElement.classList.add('song-info-content');
+
+    // Append the song information element to the overlay
+    const songInfoOverlay = songDetailContainer.querySelector('.song-info-overlay');
+    songInfoOverlay.innerHTML = ''; // Clear any previous content
+    songInfoOverlay.appendChild(songInfoElement);
+
+    // Retrieve song information using groqSongInfo
+    try {
+        const response = await fetch(`/groqSongInfo?songName=${encodeURIComponent(song.track.name)}&artistName=${encodeURIComponent(song.track.artists[0].name)}`);
+        const songInfo = await response.text();
+        console.log('Song Information:', songInfo);
+
+        // Display the song information
+        songInfoElement.innerHTML = songInfo;
+
+        // Blur the album art and show the song information after a short delay
+        setTimeout(() => {
+            songDetailImageElement.classList.add('blurred');
+            songInfoOverlay.classList.add('visible');
+        }, 3000);
+    } catch (error) {
+        console.error('Error retrieving song information:', error);
+    }
 }
 
 function smoothScrollToTop() {

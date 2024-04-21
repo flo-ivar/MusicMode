@@ -9,6 +9,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "express-session": "^1.18.0",
+    "groq-sdk": "^0.3.2",
     "spotify-web-api-node": "^5.0.2"
   }
 }

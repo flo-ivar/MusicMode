@@ -7,6 +7,11 @@ const session = require('express-session');
 const server = express();
 const PORT = process.env.PORT || 3000;
 
+const Groq = require("groq-sdk");
+const groq = new Groq({
+    apiKey: "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"
+});
+
 // Set up the session middleware
 server.use(session({
     secret: 'your-secret-key',
@@ -111,6 +116,34 @@ server.get('/check-login', (req, res) => {
     const loggedIn = !!req.session.accessToken;
     res.json({loggedIn});
 });
+
+server.get('/groqSongInfo', async (req, res) => {
+    const songName = req.query.songName;
+    const artistName = req.query.artistName;
+
+    try {
+        const chatCompletion = await getSongInfo(songName, artistName);
+        res.send(chatCompletion.choices[0]?.message?.content || "");
+    } catch (error) {
+        console.error('Error retrieving Groq chat completion:', error);
+        res.status(500).json({error: 'Internal Server Error'});
+    }
+});
+
+async function getSongInfo(songName, artistName) {
+    return groq.chat.completions.create({
+        messages: [
+            {
+                role: "user",
+                content: `Write a 100-word informative text about the song '${songName}' by ${artistName}, focusing on objective facts about the song's composition, album details, and chart performance. Use markdown to bold significant words or phrases. Avoid emotional or subjective language and aim for a neutral, encyclopedic tone suitable for reading while listening to a 30-second clip.`
+            }
+        ],
+        // model: "mixtral-8x7b-32768"
+        // model: "llama3-8b-8192"
+        model: "llama3-70b-8192"
+    });
+}
+
 
 // Start the server
 server.listen(PORT, () => {

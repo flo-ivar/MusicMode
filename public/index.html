@@ -55,13 +55,21 @@
 </main>
 <div id="songDetailContainer" class="hidden">
     <div id="songDetail" class="px-4 pt-4">
-        <div class="flex flex-col items-start">
+        <div class="flex flex-col items-center">
+            <div class="album-art-container">
+                <img id="songDetailImage" src="" alt="Song Image" class="song-detail-image rounded-lg shadow-lg">
+                <div class="song-info-overlay">
+                    <div class="song-info-content">
+                        <!-- Song information will be inserted here -->
+                    </div>
+                </div>
+            </div>
             <h2 id="songDetailName" class="text-5xl font-bold mb-4"></h2>
             <p id="songDetailArtist" class="text-2xl mb-8"></p>
-            <img id="songDetailImage" src="" alt="Song Image" class="song-detail-image rounded-lg shadow-lg">
         </div>
     </div>
 </div>
+
 <footer class="py-8 mt-16">
     <div class="container mx-auto px-4 flex justify-between items-center">
         <p class="text-gray-300 text-xl">&copy; 2024 MusicMode. All rights reserved.</p>
