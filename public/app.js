@@ -15,11 +15,7 @@ refreshLikedSongsButton.addEventListener('click', () => {
     fetchUserData();
 });
 
-const progressBar = document.createElement('div');
-progressBar.classList.add('progress-bar');
-progressBar.style.width = '0%';
-progressBar.textContent = '0%';
-document.body.appendChild(progressBar);
+const progressOverlay = document.getElementById('progressOverlay');
 
 const storedUserData = localStorage.getItem('userData');
 if (storedUserData) {
@@ -32,17 +28,27 @@ if (storedUserData) {
     displayTotalSongs();
     displayRandomSongs();
 } else {
-    fetchUserData();
+    // Check if the user is logged in
+    fetch('/check-login')
+        .then(response => response.json())
+        .then(data => {
+            if (data.loggedIn) {
+                // If the user is logged in, fetch the user data
+                fetchUserData();
+            } else {
+                // If the user is not logged in, hide the progress overlay
+                progressOverlay.classList.add('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error checking login status:', error);
+            // Handle the error appropriately, e.g., show an error message
+        });
 }
 
 function fetchUserData() {
+    progressOverlay.classList.remove('hidden');
     const eventSource = new EventSource('/user-data');
-
-    eventSource.addEventListener('progress', (event) => {
-        const progress = event.data;
-        progressBar.style.width = `${progress}%`;
-        progressBar.textContent = `${progress}%`;
-    });
 
     eventSource.addEventListener('complete', (event) => {
         const data = JSON.parse(event.data);
@@ -55,7 +61,7 @@ function fetchUserData() {
         localStorage.setItem('userData', JSON.stringify({userProfile, likedSongs: fetchedLikedSongs}));
         displayTotalSongs();
         displayRandomSongs();
-        progressBar.remove();
+        progressOverlay.classList.add('hidden');
         eventSource.close();
     });
 }

@@ -2,9 +2,17 @@
 const express = require('express');
 const SpotifyWebApi = require('spotify-web-api-node');
 const path = require('path');
+const session = require('express-session');
 
 const server = express();
 const PORT = process.env.PORT || 3000;
+
+// Set up the session middleware
+server.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true
+}));
 
 // Set up the Spotify API client
 const spotifyApi = new SpotifyWebApi({
@@ -32,9 +40,9 @@ server.get('/login', (req, res) => {
 server.get('/callback', (req, res) => {
     const {code} = req.query;
     spotifyApi.authorizationCodeGrant(code).then(data => {
-        // Save the access token and refresh token
-        spotifyApi.setAccessToken(data.body['access_token']);
-        spotifyApi.setRefreshToken(data.body['refresh_token']);
+        // Save the access token and refresh token in the session
+        req.session.accessToken = data.body['access_token'];
+        req.session.refreshToken = data.body['refresh_token'];
         // Redirect the user back to the main page
         res.redirect('/');
     }).catch(error => {
@@ -46,6 +54,17 @@ server.get('/callback', (req, res) => {
 // Route to get user profile and liked songs
 server.get('/user-data', async (req, res) => {
     try {
+        // Check if the access token exists in the session
+        if (!req.session.accessToken) {
+            // If the access token doesn't exist, redirect to the login page
+            res.redirect('/login');
+            return;
+        }
+
+        // Set the access token from the session
+        spotifyApi.setAccessToken(req.session.accessToken);
+        spotifyApi.setRefreshToken(req.session.refreshToken);
+
         const userProfile = await spotifyApi.getMe();
         let likedSongs = [];
         let offset = 0;
@@ -75,6 +94,12 @@ server.get('/user-data', async (req, res) => {
         console.error('Error retrieving user data:', error);
         res.status(500).json({error: 'Internal Server Error'});
     }
+});
+
+server.get('/check-login', (req, res) => {
+    // Check if the access token exists in the session
+    const loggedIn = !!req.session.accessToken;
+    res.json({loggedIn});
 });
 
 // Start the server
