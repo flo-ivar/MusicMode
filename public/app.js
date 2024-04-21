@@ -49,6 +49,16 @@ if (storedUserData) {
 function fetchUserData() {
     progressOverlay.classList.remove('hidden');
     const eventSource = new EventSource('/user-data');
+    const progressCircle = document.querySelector('.progress-circle');
+
+    eventSource.addEventListener('progress', (event) => {
+        const progress = event.data;
+        console.log(`Fetching songs: ${progress}%`);
+
+        // Update the progress circle
+        progressCircle.style.background = `conic-gradient(#1DB954 ${progress}%, rgba(255, 255, 255, 0.2) ${progress}%)`;
+        progressCircle.setAttribute('data-progress', progress);
+    });
 
     eventSource.addEventListener('complete', (event) => {
         const data = JSON.parse(event.data);

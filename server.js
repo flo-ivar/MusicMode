@@ -53,6 +53,7 @@ server.get('/callback', (req, res) => {
 
 // Route to get user profile and liked songs
 server.get('/user-data', async (req, res) => {
+    console.log("user-data")
     try {
         // Check if the access token exists in the session
         if (!req.session.accessToken) {
@@ -76,12 +77,21 @@ server.get('/user-data', async (req, res) => {
             'Connection': 'keep-alive'
         });
 
+        // Get the total number of liked songs
+        const totalSongs = (await spotifyApi.getMySavedTracks({limit: 1})).body.total;
+
         do {
             response = await spotifyApi.getMySavedTracks({limit: 50, offset: offset});
             likedSongs = likedSongs.concat(response.body.items);
-            offset += 50;
+            offset += response.body.items.length;
 
-            const progress = Math.floor((offset / response.body.total) * 100);
+            // Calculate the progress percentage
+            const progress = Math.floor((offset / totalSongs) * 100);
+
+            // Log the progress percentage in the terminal
+            console.log(`Fetching songs: ${progress}%`);
+
+            // Send the progress update to the client
             res.write(`event: progress\ndata: ${progress}\n\n`);
         } while (response.body.next);
 
